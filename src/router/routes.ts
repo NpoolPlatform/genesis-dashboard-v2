@@ -22,7 +22,7 @@ const routes: RouteRecordRaw[] = [
           ShowFooterTop: true,
           ShowSignHelper: true,
           ShowTopTip: false,
-          NeedLogined: true
+          NeedLogined: false
         }
       }, {
         path: 'signin',

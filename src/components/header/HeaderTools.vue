@@ -1,7 +1,6 @@
 <template>
   <div class='row'>
     <HeaderToolBtn :icon='bellIcon' />
-    <LangSwitcher />
     <AvatarDropdown v-if='logined' />
   </div>
 </template>
@@ -15,7 +14,6 @@ import bellMsg from '../../assets/bell-msg.svg'
 
 const AvatarDropdown = defineAsyncComponent(() => import('src/components/avatar/AvatarDropdown.vue'))
 const HeaderToolBtn = defineAsyncComponent(() => import('src/components/header/HeaderToolBtn.vue'))
-const LangSwitcher = defineAsyncComponent(() => import('src/components/lang/LangSwitcher.vue'))
 
 const loginedUser = useLoginedUserStore()
 const logined = loginedUser.getLogined
