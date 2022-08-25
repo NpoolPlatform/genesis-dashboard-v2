@@ -26,7 +26,7 @@
   >
     <template #top-right>
       <q-btn
-        v-if='roles.length === 0'
+        v-if='roles.length <= 1'
         dense
         flat
         class='btn flat'
@@ -44,7 +44,8 @@
   >
     <template #top-right>
       <q-select
-        dense :options='myApps'
+        dense
+        :options='myApps'
         v-model='selectedApp'
         :label='$t("MSG_APP")'
       />
@@ -77,11 +78,38 @@
       />
     </template>
   </q-table>
+  <q-table
+    dense
+    flat
+    :title='$t("MSG_AUTHS")'
+    :rows='auths'
+    row-key='ID'
+  >
+    <template #top-right>
+      <q-btn
+        v-if='auths?.length'
+        dense
+        flat
+        class='btn flat'
+        :label='$t("MSG_AUTHORIZE_GENESIS")'
+        @click='onAuthorizeGenesis'
+      />
+    </template>
+  </q-table>
 </template>
 
 <script setup lang='ts'>
-import { onMounted, computed, ref } from 'vue'
-import { App, encryptPassword, NotifyType, Role, useGenesisAdminStore, User } from 'npool-cli-v4'
+import { onMounted, computed, ref, watch } from 'vue'
+import {
+  App,
+  Auth,
+  encryptPassword,
+  NotifyType,
+  Role,
+  useGenesisAdminStore,
+  useLocalUserStore,
+  User
+} from 'npool-cli-v4'
 import { useRouter } from 'vue-router'
 import { AppID } from 'src/const/const'
 
@@ -89,6 +117,10 @@ const genesisadmin = useGenesisAdminStore()
 const apps = computed(() => genesisadmin.Apps)
 const roles = computed(() => genesisadmin.Roles)
 const users = computed(() => genesisadmin.Users)
+const auths = computed(() => genesisadmin.Auths.get(AppID))
+
+const user = useLocalUserStore()
+const logiend = computed(() => user.logined)
 
 const router = useRouter()
 
@@ -110,7 +142,7 @@ onMounted(() => {
       void router.push({ path: '/signin' })
       return
     }
-    if (apps.length > 0 && roles.value.length > 0 && users.value.length > 0) {
+    if (apps.length > 0 && roles.value.length > 0 && users.value.length > 0 && auths.value?.length && !logiend.value) {
       void router.push({ path: '/signin' })
     }
   })
@@ -122,7 +154,7 @@ onMounted(() => {
       void router.push({ path: '/signin' })
       return
     }
-    if (apps.value.length > 0 && roles.length > 0 && users.value.length > 0) {
+    if (apps.value.length > 0 && roles.length > 0 && users.value.length > 0 && auths.value?.length && !logiend.value) {
       void router.push({ path: '/signin' })
     }
   })
@@ -139,7 +171,28 @@ onMounted(() => {
       return
     }
 
-    if (apps.value.length > 0 && roles.value.length > 0 && users.length > 0) {
+    if (apps.value.length > 0 && roles.value.length > 0 && users.length > 0 && auths.value?.length && !logiend.value) {
+      void router.push({ path: '/signin' })
+    }
+  })
+
+  genesisadmin.getGenesisAuths({
+    TargetAppID: AppID,
+    Message: {
+      Error: {
+        Title: 'MSG_CREATE_ADMIN_APPS',
+        Description: 'MSG_CREATE_ADMIN_APPS_FAIL',
+        Popup: true,
+        Type: NotifyType.Error
+      }
+    }
+  }, (auths: Array<Auth>, error: boolean) => {
+    if (error) {
+      // void router.push({ path: '/signin' })
+      return
+    }
+
+    if (apps.value.length > 0 && roles.value.length > 0 && users.value.length > 0 && auths.length > 0 && !logiend.value) {
       void router.push({ path: '/signin' })
     }
   })
@@ -160,7 +213,7 @@ const onCreateAdminApps = () => {
       void router.push({ path: '/signin' })
       return
     }
-    if (apps.length > 0 && roles.value.length > 0 && users.value.length > 0) {
+    if (apps.length > 0 && roles.value.length > 0 && users.value.length > 0 && auths.value?.length && !logiend.value) {
       void router.push({ path: '/signin' })
     }
   })
@@ -181,7 +234,7 @@ const onCreateGenesisRoles = () => {
       void router.push({ path: '/signin' })
       return
     }
-    if (apps.value.length > 0 && roles.length > 0 && users.value.length > 0) {
+    if (apps.value.length > 0 && roles.length > 0 && users.value.length > 0 && !logiend.value) {
       void router.push({ path: '/signin' })
     }
   })
@@ -231,25 +284,18 @@ const myApps = computed(() => Array.from(apps.value.filter((el) => {
   } as MyApp
 }))
 
-const selectedAppID = ref(AppID)
-const selectedApp = computed({
-  get: () => {
-    const app = apps.value.find((el) => el.ID === selectedAppID.value)
-    if (!app) {
-      return undefined as unknown as MyApp
-    }
-    return {
-      label: app?.Name,
-      value: app
-    } as MyApp
-  },
-  set: (val: MyApp) => {
-    selectedAppID.value = val.value.ID
-  }
+const selectedAppID = ref('')
+const selectedApp = ref(undefined as unknown as MyApp)
+watch(selectedApp, () => {
+  selectedAppID.value = selectedApp.value?.value?.ID
 })
 
 const onCreateGenesisUser = () => {
   if (password.value.length === 0 || emailAddress.value.length === 0) {
+    return
+  }
+
+  if (!selectedAppID.value.length) {
     return
   }
 
@@ -271,9 +317,17 @@ const onCreateGenesisUser = () => {
       return
     }
 
-    if (genesisUserCreated.value) {
+    if (genesisUserCreated.value && !logiend.value) {
       void router.push({ path: '/signin' })
     }
+  })
+}
+
+const onAuthorizeGenesis = () => {
+  genesisadmin.authorizeGenesis({
+    Message: {}
+  }, () => {
+    // TODO
   })
 }
 
