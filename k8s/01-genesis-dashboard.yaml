@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: dashboard-template
-          image: uhub.service.ucloud.cn/entropypool/dashboard-template:latest
+          image: uhub.service.ucloud.cn/entropypool/genesis-dashboard-v2:latest
           imagePullPolicy: Always
           env:
             - name: ENV_ENVIRONMENT_TARGET
