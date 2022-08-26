@@ -19,7 +19,6 @@ pipeline {
           set -e
           if [ ! $rc -eq 0 ]; then
             n v16.14.0
-            PATH=/usr/local/bin:$PATH npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
             PATH=/usr/local/bin:$PATH npm install --global --registry https://registry.npm.taobao.org yarn
             PATH=/usr/local/bin:$PATH yarn add global quasar-cli@latest
           fi
@@ -46,7 +45,7 @@ pipeline {
         expression { BUILD_TARGET == 'true' }
       }
       steps {
-        sh 'docker build -t $DOCKER_REGISTRY/entropypool/dashboard-template:latest .'
+        sh 'docker build -t $DOCKER_REGISTRY/entropypool/genesis-dashboard-v2:latest .'
       }
     }
 
@@ -164,14 +163,14 @@ pipeline {
           rc=$?
           set -e
           if [ ! $rc -eq 0 ]; then
+            n latest
             n v16.14.0
-            PATH=/usr/local/bin:$PATH npm i -g mirror-config-china --registry=https://registry.npm.taobao.org
             PATH=/usr/local/bin:$PATH npm install --global --registry https://registry.npm.taobao.org yarn
             PATH=/usr/local/bin:$PATH yarn add global quasar-cli@latest
           fi
           PATH=/usr/local/bin:$PATH:./node_modules/@quasar/app/bin yarn install --registry https://registry.npm.taobao.org/
           PATH=/usr/local/bin:$PATH:./node_modules/@quasar/app/bin quasar build
-          docker build -t $DOCKER_REGISTRY/entropypool/dashboard-template:$tag .
+          docker build -t $DOCKER_REGISTRY/entropypool/genesis-dashboard-v2:$tag .
         '''.stripIndent())
       }
     }
@@ -181,9 +180,9 @@ pipeline {
         expression { RELEASE_TARGET == 'true' }
       }
       steps {
-        sh 'docker push $DOCKER_REGISTRY/entropypool/dashboard-template:latest'
+        sh 'docker push $DOCKER_REGISTRY/entropypool/genesis-dashboard-v2:latest'
         sh(returnStdout: true, script: '''
-          images=`docker images | grep entropypool | grep dashboard-template | grep none | awk '{ print $3 }'`
+          images=`docker images | grep entropypool | grep genesis-dashboard-v2 | grep none | awk '{ print $3 }'`
           for image in $images; do
             docker rmi $image -f
           done
@@ -201,11 +200,11 @@ pipeline {
           tag=`git describe --tags $revlist`
 
           set +e
-          docker images | grep dashboard-template | grep $tag
+          docker images | grep genesis-dashboard-v2 | grep $tag
           rc=$?
           set -e
           if [ 0 -eq $rc ]; then
-            docker push $DOCKER_REGISTRY/entropypool/dashboard-template:$tag
+            docker push $DOCKER_REGISTRY/entropypool/genesis-dashboard-v2:$tag
           fi
         '''.stripIndent())
       }
@@ -228,11 +227,11 @@ pipeline {
           tag=$major.$minor.$patch
 
           set +e
-          docker images | grep dashboard-template | grep $tag
+          docker images | grep genesis-dashboard-v2 | grep $tag
           rc=$?
           set -e
           if [ 0 -eq $rc ]; then
-            docker push $DOCKER_REGISTRY/entropypool/dashboard-template:$tag
+            docker push $DOCKER_REGISTRY/entropypool/genesis-dashboard-v2:$tag
           fi
         '''.stripIndent())
       }
@@ -241,10 +240,11 @@ pipeline {
     stage('Deploy for development') {
       when {
         expression { DEPLOY_TARGET == 'true' }
-        expression { TARGET_ENV == 'development' }
+        expression { TARGET_ENV ==~ /.*development.*/ }
       }
       steps {
-        sh 'sed -i "s/uhub.service.ucloud.cn/$DOCKER_REGISTRY/g" k8s/01-dashboard-template.yaml'
+        sh 'sed -i "s/uhub.service.ucloud.cn/$DOCKER_REGISTRY/g" k8s/01-genesis-dashboard.yaml'
+        sh 'sed -i "s/development/$TARGET_ENV/g" k8s/02-ingress.yaml'
         sh 'kubectl apply -k k8s'
       }
     }
@@ -252,7 +252,7 @@ pipeline {
     stage('Deploy for testing') {
       when {
         expression { DEPLOY_TARGET == 'true' }
-        expression { TARGET_ENV == 'testing' }
+        expression { TARGET_ENV ==~ /.*testing.*/ }
       }
       steps {
         sh(returnStdout: true, script: '''
@@ -261,8 +261,9 @@ pipeline {
 
           git reset --hard
           git checkout $tag
-          sed -i "s/dashboard-template:latest/dashboard-template:$tag/g" k8s/01-dashboard-template.yaml
-          sed -i "s/uhub.service.ucloud.cn/$DOCKER_REGISTRY/g" k8s/01-dashboard-template.yaml
+          sed -i "s/genesis-dashboard-v2:latest/genesis-dashboard-v2:$tag/g" k8s/01-genesis-dashboard.yaml
+          sed -i "s/uhub.service.ucloud.cn/$DOCKER_REGISTRY/g" k8s/01-genesis-dashboard.yaml
+          sed -i "s/development/$TARGET_ENV/g" k8s/02-ingress.yaml
           kubectl apply -k k8s
         '''.stripIndent())
       }
@@ -286,8 +287,9 @@ pipeline {
 
           git reset --hard
           git checkout $tag
-          sed -i "s/dashboard-template:latest/dashboard-template:$tag/g" k8s/01-dashboard-template.yaml
-          sed -i "s/uhub.service.ucloud.cn/$DOCKER_REGISTRY/g" k8s/01-dashboard-template.yaml
+          sed -i "s/genesis-dashboard-v2:latest/genesis-dashboard-v2:$tag/g" k8s/01-genesis-dashboard.yaml
+          sed -i "s/uhub.service.ucloud.cn/$DOCKER_REGISTRY/g" k8s/01-genesis-dashboard.yaml
+          sed -i "s/development/$TARGET_ENV/g" k8s/02-ingress.yaml
           kubectl apply -k k8s
         '''.stripIndent())
       }

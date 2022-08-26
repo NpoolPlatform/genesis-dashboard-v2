@@ -1,6 +1,6 @@
 commonLabels:
-  # app: dashboard-template
+  # app: genesis dashboard
 
 resources:
-  - 01-dashboard-template.yaml
+  - 01-genesis-dashboard.yaml
   - 02-ingress.yaml
