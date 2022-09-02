@@ -16,7 +16,7 @@ import {
   useLocalUserStore,
   User
 } from 'npool-cli-v4'
-import { useRouter } from 'vue-router'
+// import { useRouter } from 'vue-router'
 import { AppID } from 'src/const/const'
 
 const Apps = defineAsyncComponent(() => import('src/components/index/App.vue'))
@@ -33,7 +33,7 @@ const auths = computed(() => genesisadmin.Auths.get(AppID))
 const user = useLocalUserStore()
 const logiend = computed(() => user.logined)
 
-const router = useRouter()
+// const router = useRouter()
 
 const genesisUserCreated = computed(() => {
   let created = false
@@ -50,11 +50,11 @@ onMounted(() => {
     Message: {}
   }, (apps: Array<App>, error: boolean) => {
     if (error) {
-      void router.push({ path: '/signin' })
+      // void router.push({ path: '/signin' })
       return
     }
     if (apps.length > 0 && roles.value.length > 0 && users.value.length > 0 && auths.value?.length && !logiend.value) {
-      void router.push({ path: '/signin' })
+      // void router.push({ path: '/signin' })
     }
   })
 
@@ -62,11 +62,11 @@ onMounted(() => {
     Message: {}
   }, (roles: Array<Role>, error: boolean) => {
     if (error) {
-      void router.push({ path: '/signin' })
+      // void router.push({ path: '/signin' })
       return
     }
     if (apps.value.length > 0 && roles.length > 0 && users.value.length > 0 && auths.value?.length && !logiend.value) {
-      void router.push({ path: '/signin' })
+      // void router.push({ path: '/signin' })
     }
   })
 
@@ -74,7 +74,7 @@ onMounted(() => {
     Message: {}
   }, (users: Array<User>, error: boolean) => {
     if (error) {
-      void router.push({ path: '/signin' })
+      // void router.push({ path: '/signin' })
       return
     }
 
@@ -83,7 +83,7 @@ onMounted(() => {
     }
 
     if (apps.value.length > 0 && roles.value.length > 0 && users.length > 0 && auths.value?.length && !logiend.value) {
-      void router.push({ path: '/signin' })
+      // // void router.push({ path: '/signin' })
     }
   })
 
@@ -99,12 +99,12 @@ onMounted(() => {
     }
   }, (auths: Array<Auth>, error: boolean) => {
     if (error) {
-      void router.push({ path: '/signin' })
+      // void router.push({ path: '/signin' })
       return
     }
 
     if (apps.value.length > 0 && roles.value.length > 0 && users.value.length > 0 && auths.length > 0 && !logiend.value) {
-      void router.push({ path: '/signin' })
+      // void router.push({ path: '/signin' })
     }
   })
 })

@@ -38,7 +38,6 @@
         :label='$t("MSG_EMAIL_ADDRESS")'
       />
       <q-btn
-        v-if='users.length <= 1'
         dense
         flat
         class='btn flat'
@@ -60,6 +59,7 @@ import {
   User
 } from 'npool-cli-v4'
 import { useI18n } from 'vue-i18n'
+import { AppID } from 'src/const/const'
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const { t } = useI18n({ useScope: 'global' })
@@ -137,7 +137,7 @@ interface MyApp {
 }
 
 const myApps = computed(() => Array.from(apps.value.filter((el) => {
-  return users.value.findIndex((uel) => uel.AppID === el.ID) < 0
+  return users.value.findIndex((uel) => uel.AppID === el.ID && uel.AppID === AppID) < 0
 })).map((app) => {
   return {
     label: app.Name,
