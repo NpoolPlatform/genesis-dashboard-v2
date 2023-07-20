@@ -27,7 +27,7 @@ import {
 import { AppID } from 'src/const/const'
 
 const genesisadmin = useGenesisAdminStore()
-const auths = computed(() => genesisadmin.Auths.get(AppID))
+const auths = computed(() => genesisadmin.Auths?.get(AppID))
 
 const onAuthorizeGenesis = () => {
   genesisadmin.authorizeGenesis({

@@ -28,7 +28,7 @@ const genesisadmin = useGenesisAdminStore()
 const apps = computed(() => genesisadmin.Apps)
 const roles = computed(() => genesisadmin.Roles)
 const users = computed(() => genesisadmin.Users)
-const auths = computed(() => genesisadmin.Auths.get(AppID))
+const auths = computed(() => genesisadmin.Auths?.get(AppID))
 
 const user = useLocalUserStore()
 const logiend = computed(() => user.logined)
@@ -99,7 +99,7 @@ onMounted(() => {
     }
   }, (auths: Array<Auth>, error: boolean) => {
     if (error) {
-      void router.push({ path: '/signin' })
+      // void router.push({ path: '/signin' })
       return
     }
 
