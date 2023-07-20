@@ -8,7 +8,6 @@
   >
     <template #top-right>
       <q-btn
-        v-if='auths?.length'
         dense
         flat
         class='btn flat'
