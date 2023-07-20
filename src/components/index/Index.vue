@@ -28,7 +28,6 @@ const genesisadmin = useGenesisAdminStore()
 const apps = computed(() => genesisadmin.Apps)
 const roles = computed(() => genesisadmin.Roles)
 const users = computed(() => genesisadmin.Users)
-const auths = computed(() => genesisadmin.Auths?.get(AppID))
 
 const user = useLocalUserStore()
 const logiend = computed(() => user.logined)
@@ -53,7 +52,7 @@ onMounted(() => {
       void router.push({ path: '/signin' })
       return
     }
-    if (apps.length > 0 && roles.value.length > 0 && users.value.length > 0 && auths.value?.length && !logiend.value) {
+    if (apps.length > 0 && roles.value.length > 0 && users.value.length > 0 && !logiend.value) {
       void router.push({ path: '/signin' })
     }
   })
@@ -65,7 +64,7 @@ onMounted(() => {
       void router.push({ path: '/signin' })
       return
     }
-    if (apps.value.length > 0 && roles.length > 0 && users.value.length > 0 && auths.value?.length && !logiend.value) {
+    if (apps.value.length > 0 && roles.length > 0 && users.value.length > 0 && !logiend.value) {
       void router.push({ path: '/signin' })
     }
   })
@@ -78,11 +77,11 @@ onMounted(() => {
       return
     }
 
-    if (!genesisUserCreated.value) {
+    if (!genesisUserCreated.value && users.length === 0) {
       return
     }
 
-    if (apps.value.length > 0 && roles.value.length > 0 && users.length > 0 && auths.value?.length && !logiend.value) {
+    if (apps.value.length > 0 && roles.value.length > 0 && users.length > 0 && !logiend.value) {
       void router.push({ path: '/signin' })
     }
   })
