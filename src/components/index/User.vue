@@ -51,53 +51,46 @@
 
 <script setup lang='ts'>
 import { computed, ref, watch } from 'vue'
-import {
-  App,
-  encryptPassword,
-  formatTime,
-  NotifyType,
-  useGenesisAdminStore,
-  User
-} from 'npool-cli-v4'
+import { app, admin, user, utils, notify } from 'src/npoolstore'
 import { useI18n } from 'vue-i18n'
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const { t } = useI18n({ useScope: 'global' })
 
-const genesisadmin = useGenesisAdminStore()
-const apps = computed(() => genesisadmin.Apps)
-const users = computed(() => genesisadmin.Users)
+const _admin = admin.useAdminStore()
+const apps = computed(() => _admin.Apps)
+const users = computed(() => _admin.Users)
 
 const columns = computed(() => [
   {
     name: 'AppID',
     label: t('MSG_APP_ID'),
-    field: (row: User) => row.AppID
+    field: (row: user.User) => row.AppID
   },
   {
     name: 'UserID',
     label: t('MSG_USER_ID'),
-    field: (row: User) => row.ID
+    field: (row: user.User) => row.ID
   },
   {
     name: 'EmailAddress',
     label: t('MSG_EMAIL_ADDRESS'),
-    field: (row: User) => row.EmailAddress
+    field: (row: user.User) => row.EmailAddress
   },
   {
     name: 'PhoneNO',
     label: t('MSG_PHONE_NO'),
-    field: (row: User) => row.PhoneNO
+    field: (row: user.User) => row.PhoneNO
   },
   {
     name: 'Roles',
     label: t('MSG_ROLES'),
-    field: (row: User) => row.Roles.join(',')
+    field: (row: user.User) => row.Roles.join(',')
   },
   {
     name: 'CreatedAt',
     label: t('MSG_CREATEDAT'),
-    field: (row: User) => formatTime(row.CreatedAt)
+    field: (row: user.User) => utils.formatTime(row.CreatedAt)
   }
 ])
 
@@ -133,11 +126,11 @@ const onRefreshPassword = () => {
 
 interface MyApp {
   label: string
-  value: App
+  value: app.App
 }
 
 const myApps = computed(() => Array.from(apps.value.filter((el) => {
-  return users.value.findIndex((uel) => uel.AppID === el.ID) < 0
+  return users.value.findIndex((uel) => uel.AppID === el.EntID) < 0
 })).map((app) => {
   return {
     label: app.Name,
@@ -148,7 +141,7 @@ const myApps = computed(() => Array.from(apps.value.filter((el) => {
 const selectedAppID = ref('')
 const selectedApp = ref(undefined as unknown as MyApp)
 watch(selectedApp, () => {
-  selectedAppID.value = selectedApp.value?.value?.ID
+  selectedAppID.value = selectedApp.value?.value?.EntID
 })
 
 const onCreateGenesisUser = () => {
@@ -160,16 +153,16 @@ const onCreateGenesisUser = () => {
     return
   }
 
-  genesisadmin.createGenesisUser({
+  _admin.createGenesisUser({
     TargetAppID: selectedAppID.value,
     EmailAddress: emailAddress.value,
-    PasswordHash: encryptPassword(password.value),
+    PasswordHash: utils.encryptPassword(password.value),
     Message: {
       Error: {
         Title: 'MSG_CREATE_GENESIS_USER',
         Description: 'MSG_CREATE_GENESIS_USER_FAIL',
         Popup: true,
-        Type: NotifyType.Error
+        Type: notify.NotifyType.Error
       }
     }
   }, () => {

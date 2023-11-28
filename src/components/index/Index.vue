@@ -7,15 +7,7 @@
 
 <script setup lang='ts'>
 import { onMounted, computed, defineAsyncComponent } from 'vue'
-import {
-  App,
-  Auth,
-  NotifyType,
-  Role,
-  useGenesisAdminStore,
-  useLocalUserStore,
-  User
-} from 'npool-cli-v4'
+import { app, admin, user, role } from 'src/npoolstore'
 import { useRouter } from 'vue-router'
 import { AppID } from 'src/const/const'
 
@@ -24,13 +16,13 @@ const Roles = defineAsyncComponent(() => import('src/components/index/Role.vue')
 const Users = defineAsyncComponent(() => import('src/components/index/User.vue'))
 const Auths = defineAsyncComponent(() => import('src/components/index/Auth.vue'))
 
-const genesisadmin = useGenesisAdminStore()
-const apps = computed(() => genesisadmin.Apps)
-const roles = computed(() => genesisadmin.Roles)
-const users = computed(() => genesisadmin.Users)
+const _admin = admin.useAdminStore()
+const apps = computed(() => _admin.Apps)
+const roles = computed(() => _admin.Roles)
+const users = computed(() => _admin.Users)
 
-const user = useLocalUserStore()
-const logiend = computed(() => user.logined)
+const _user = user.useLocalUserStore()
+const logiend = computed(() => _user.logined)
 
 const router = useRouter()
 
@@ -45,64 +37,43 @@ const genesisUserCreated = computed(() => {
 })
 
 onMounted(() => {
-  genesisadmin.getAdminApps({
+  _admin.getAdminApps({
     Message: {}
-  }, (apps: Array<App>, error: boolean) => {
+  }, (error: boolean, apps?: Array<app.App>) => {
     if (error) {
       void router.push({ path: '/signin' })
       return
     }
-    if (apps.length > 0 && roles.value.length > 0 && users.value.length > 0 && !logiend.value) {
+    if (apps?.length && roles.value.length > 0 && users.value.length > 0 && !logiend.value) {
       void router.push({ path: '/signin' })
     }
   })
 
-  genesisadmin.getGenesisRoles({
+  _admin.getGenesisRoles({
     Message: {}
-  }, (roles: Array<Role>, error: boolean) => {
+  }, (error: boolean, roles?: Array<role.Role>) => {
     if (error) {
       void router.push({ path: '/signin' })
       return
     }
-    if (apps.value.length > 0 && roles.length > 0 && users.value.length > 0 && !logiend.value) {
+    if (apps.value.length > 0 && roles?.length && users.value.length > 0 && !logiend.value) {
       void router.push({ path: '/signin' })
     }
   })
 
-  genesisadmin.getGenesisUsers({
+  _admin.getGenesisUsers({
     Message: {}
-  }, (users: Array<User>, error: boolean) => {
+  }, (error: boolean, users?: Array<user.User>) => {
     if (error) {
       void router.push({ path: '/signin' })
       return
     }
 
-    if (!genesisUserCreated.value && users.length === 0) {
+    if (!genesisUserCreated.value && !users?.length) {
       return
     }
 
-    if (apps.value.length > 0 && roles.value.length > 0 && users.length > 0 && !logiend.value) {
-      void router.push({ path: '/signin' })
-    }
-  })
-
-  genesisadmin.getGenesisAuths({
-    TargetAppID: AppID,
-    Message: {
-      Error: {
-        Title: 'MSG_CREATE_ADMIN_APPS',
-        Description: 'MSG_CREATE_ADMIN_APPS_FAIL',
-        Popup: true,
-        Type: NotifyType.Error
-      }
-    }
-  }, (auths: Array<Auth>, error: boolean) => {
-    if (error) {
-      // void router.push({ path: '/signin' })
-      return
-    }
-
-    if (apps.value.length > 0 && roles.value.length > 0 && users.value.length > 0 && auths.length > 0 && !logiend.value) {
+    if (apps.value.length > 0 && roles.value.length > 0 && users?.length && !logiend.value) {
       void router.push({ path: '/signin' })
     }
   })

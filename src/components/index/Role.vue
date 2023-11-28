@@ -21,22 +21,19 @@
 
 <script setup lang='ts'>
 import { computed } from 'vue'
-import {
-  NotifyType,
-  useGenesisAdminStore
-} from 'npool-cli-v4'
+import { notify, admin } from 'src/npoolstore'
 
-const genesisadmin = useGenesisAdminStore()
-const roles = computed(() => genesisadmin.Roles)
+const _admin = admin.useAdminStore()
+const roles = computed(() => _admin.Roles)
 
 const onCreateGenesisRoles = () => {
-  genesisadmin.createGenesisRoles({
+  _admin.createGenesisRoles({
     Message: {
       Error: {
         Title: 'MSG_CREATE_GENESIS_ROLES',
         Description: 'MSG_CREATE_GENESIS_ROLES_FAIL',
         Popup: true,
-        Type: NotifyType.Error
+        Type: notify.NotifyType.Error
       }
     }
   }, () => {
