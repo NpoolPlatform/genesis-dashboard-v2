@@ -20,16 +20,13 @@
 
 <script setup lang='ts'>
 import { computed } from 'vue'
-import {
-  useGenesisAdminStore
-} from 'npool-cli-v4'
-import { AppID } from 'src/const/const'
+import { admin } from 'src/npoolstore'
 
-const genesisadmin = useGenesisAdminStore()
-const auths = computed(() => genesisadmin.Auths?.get(AppID))
+const _admin = admin.useAdminStore()
+const auths = computed(() => _admin.Auths)
 
 const onAuthorizeGenesis = () => {
-  genesisadmin.authorizeGenesis({
+  _admin.authorizeGenesis({
     Message: {}
   }, () => {
     // TODO

@@ -12,19 +12,19 @@
 
 <script setup lang='ts'>
 import { defineAsyncComponent, onMounted } from 'vue'
-import { useNotificationStore, notify } from 'npool-cli-v2'
+import { notify } from 'src/npoolstore'
 
 const MainHeader = defineAsyncComponent(() => import('src/components/header/MainHeader.vue'))
 const Footer = defineAsyncComponent(() => import('src/components/footer/Footer.vue'))
 
-const notification = useNotificationStore()
+const notification = notify.useNotificationStore()
 
 onMounted(() => {
   notification.$subscribe((_, state) => {
     state.Notifications.forEach((notif, index) => {
       if (notif.Popup) {
         state.Notifications.splice(index, 1)
-        notify(notif)
+        notify.notify(notif)
       }
     })
   })
