@@ -41,9 +41,23 @@ pipeline {
       }
     }
 
+    stage('Generate docker image for feature') {
+      when {
+        expression { BUILD_TARGET == 'true' }
+        expression { BRANCH_NAME != 'master' }
+      }
+      steps {
+        sh(returnStdout: false, script: '''
+          feature_name=`echo $BRANCH_NAME | awk -F '/' '{ print $2 }'`
+          docker build -t $DOCKER_REGISTRY/entropypool/genesis-dashboard-v2:$feature_name .
+        '''.stripIndent())
+      }
+    }
+
     stage('Generate docker image for development') {
       when {
         expression { BUILD_TARGET == 'true' }
+        expression { BRANCH_NAME == 'master' }
       }
       steps {
         sh 'docker build -t $DOCKER_REGISTRY/entropypool/genesis-dashboard-v2:latest .'
@@ -174,6 +188,29 @@ pipeline {
           PATH=/usr/local/bin:$PATH:./node_modules/@quasar/app/bin yarn install --registry https://registry.npm.taobao.org/
           PATH=/usr/local/bin:$PATH:./node_modules/@quasar/app/bin quasar build
           docker build -t $DOCKER_REGISTRY/entropypool/genesis-dashboard-v2:$tag .
+        '''.stripIndent())
+      }
+    }
+
+    stage('Release docker image for feature') {
+      when {
+        expression { RELEASE_TARGET == 'true' }
+        expression { BRANCH_NAME != 'master' }
+      }
+      steps {
+        sh(returnStdout: false, script: '''
+          feature_name=`echo $BRANCH_NAME | awk -F '/' '{ print $2 }'`
+          set +e
+          docker images | grep entropypool | grep genesis-dashboard-v2 | grep $feature_name
+          rc=$?
+          set -e
+          if [ 0 -eq $rc ]; then
+            docker push $DOCKER_REGISTRY/entropypool/genesis-dashboard-v2:$feature_name
+          fi
+          images=`docker images | grep entropypool | grep genesis-dashboard-v2 | grep none | awk '{ print $3 }'`
+          for image in $images; do
+            docker rmi $image -f
+          done
         '''.stripIndent())
       }
     }
